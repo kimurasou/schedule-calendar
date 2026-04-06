@@ -569,7 +569,7 @@ function selectUser(index) {
       <div class="calendar-title">${user.name}<span class="month-badge">${year}年${month}月</span></div>
       <div class="action-buttons">
         <button class="btn btn-text-copy" onclick="copyAsText()">📋 テキストコピー</button>
-        <button class="btn btn-img-copy" onclick="copyAsImage()">🖼 画像コピー</button>
+        <button class="btn btn-img-copy" onclick="saveAsImage()">📥 画像保存</button>
         <button class="btn btn-print" onclick="printCalendar()">🖨 印刷</button>
       </div>
     </div>
@@ -668,7 +668,7 @@ function copyAsText() {
     .catch(() => showToast('コピーに失敗しました'));
 }
 
-async function copyAsImage() {
+async function saveAsImage() {
   const wrapper = document.getElementById('calendar-wrapper');
   if (!wrapper) return;
 
@@ -681,23 +681,15 @@ async function copyAsImage() {
       useCORS: true
     });
 
-    canvas.toBlob(async (blob) => {
-      try {
-        await navigator.clipboard.write([
-          new ClipboardItem({ 'image/png': blob })
-        ]);
-        showToast('画像をコピーしました');
-      } catch {
-        // Fallback: download
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        const user = appData.users[selectedUserIndex];
-        a.download = `${user.name}_${appData.month}月予定表.png`;
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast('画像をダウンロードしました');
-      }
+    canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const user = appData.users[selectedUserIndex];
+      a.download = `${user.name}_${appData.year}年${appData.month}月予定表.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('画像を保存しました');
     }, 'image/png');
   } catch (err) {
     showToast('画像生成に失敗しました');
