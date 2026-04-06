@@ -672,10 +672,25 @@ async function saveAsImage() {
   const wrapper = document.getElementById('calendar-wrapper');
   if (!wrapper) return;
 
+  const user = appData.users[selectedUserIndex];
+  const { year, month } = appData;
+
   showToast('画像を生成中...');
 
+  // 名前ヘッダー＋カレンダーを一時コンテナにまとめてキャプチャ
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;left:-9999px;top:0;background:#fff;padding:24px;font-family:Hiragino Sans,Meiryo,sans-serif;';
+
+  const header = document.createElement('div');
+  header.style.cssText = 'font-size:20px;font-weight:700;color:#2d3748;margin-bottom:16px;padding-bottom:12px;border-bottom:3px solid #2b6cb0;';
+  header.textContent = `${user.name}　${year}年${month}月 予定表`;
+
+  container.appendChild(header);
+  container.appendChild(wrapper.cloneNode(true));
+  document.body.appendChild(container);
+
   try {
-    const canvas = await html2canvas(wrapper, {
+    const canvas = await html2canvas(container, {
       backgroundColor: '#ffffff',
       scale: 2,
       useCORS: true
@@ -685,8 +700,7 @@ async function saveAsImage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      const user = appData.users[selectedUserIndex];
-      a.download = `${user.name}_${appData.year}年${appData.month}月予定表.png`;
+      a.download = `${user.name}_${year}年${month}月予定表.png`;
       a.click();
       URL.revokeObjectURL(url);
       showToast('画像を保存しました');
@@ -694,6 +708,8 @@ async function saveAsImage() {
   } catch (err) {
     showToast('画像生成に失敗しました');
     console.error(err);
+  } finally {
+    document.body.removeChild(container);
   }
 }
 
